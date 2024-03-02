@@ -12,7 +12,7 @@ import { getEndpoints } from "@zetachain/networks/dist/src/getEndpoints"
 import { getNetworkName } from "@zetachain/networks/dist/src/getNetworkName"
 import networks from "@zetachain/networks/dist/src/networks"
 import { getAddress, getNonZetaAddress } from "@zetachain/protocol-contracts"
-import { ethers } from "ethers"
+import { ethers, providers } from "ethers"
 import { createMultisigFromCompressedSecp256k1Pubkeys } from "../../lib/multisig"
 import wif from 'wif'
 import { TBTC,  BitcoinAddressConverter, BitcoinNetwork, Hex, BitcoinPublicKeyUtils, BitcoinPrivateKeyUtils} from "@keep-network/tbtc-v2.ts"
@@ -35,11 +35,20 @@ musign,
 combine_psigs,
 verify_musig
 } from '@cmdcode/musig2'
+import {
+  conditions,
+  decrypt,
+  domains,
+  encrypt,
+  getPorterUri,
+  initialize,
+  ThresholdMessageKit,
+} from '@nucypher/taco';
 import { DirectSecp256k1HdWallet, DirectSecp256k1HdWalletOptions } from "@cosmjs/proto-signing";
 import { SigningStargateClient, StargateClient } from "@cosmjs/stargate";
 
 import { formatEther, parseEther } from "ethers/lib/utils"
-import { AlertCircle, BookOpen, Check, Loader2, Send, Gift, Bitcoin, Orbit } from "lucide-react"
+import { AlertCircle, BookOpen, Check, Loader2, Send, Gift, Bitcoin, Orbit, Coins } from "lucide-react"
 import { useDebounce } from "use-debounce"
 import {
   useContractWrite,
@@ -85,7 +94,9 @@ const MessagingPage = () => {
 
   const [aliceIBC, setAliceIBC] = useState<AccountData>()
   const [bobIBC, setBobIBC] = useState<AccountData>()
-
+  const [condition, setCondition] = useState<conditions.condition.Condition>();
+  const [encryptedMessage, setEncryptedMessage] =
+    useState<ThresholdMessageKit>();
 
   const [destinationNetwork, setDestinationNetwork] = useState("")
   const [destinationChainID, setDestinationChainID] = useState(null)
@@ -159,7 +170,9 @@ const MessagingPage = () => {
   })
 
   const sdk = async() => {
-   return await TBTC.initializeSepolia(signer!)
+    const rpc = getEndpoints("evm", "goerli_testnet")[0]?.url
+    const provider = new ethers.providers.JsonRpcProvider()
+   return await TBTC.initializeGoerli(signer!)
   }
   const convertZETAtoMATIC = async (amount: string) => {
     const quoterContract = new ethers.Contract(
@@ -194,6 +207,8 @@ const MessagingPage = () => {
           "uniswapV2Router02",
           currentNetworkName
         )
+
+    
         const router = new ethers.Contract(
           routerAddress,
           UniswapV2Factory.abi,
@@ -350,8 +365,26 @@ keys,
         setMultiIBC(keys)
   }
   
-
+const encrypt_grouprand = async () => {
+  const ownsNFT = new conditions.predefined.erc721.ERC721Ownership({
+    contractAddress:  getAddress("zetaToken", currentNetworkName)!,
+    parameters: [3591],
+    chain: destinationChainID,
+  });
+  const rpc = getEndpoints("evm", currentNetworkName)[0]?.url
+  const provider = new ethers.providers.JsonRpcProvider(rpc)
+  const messageKit = await encrypt(
+    provider,
+    domains.TESTNET,
+    message,  
+    ownsNFT,
+    0,
+    provider.getSigner() 
+  );
+}
   const init_babylon = async () => {
+    await initialize();
+
     const babylon_wallet_alice = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic_alice,bbnOptions);
     const babylon_wallet_bob = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic_bob,bbnOptions);
     const [alice_firstAccount] = await babylon_wallet_alice.getAccounts();
@@ -639,6 +672,26 @@ Generate IBC Multisig
             {JSON.stringify( {multiIBC})}
             </code>
           </pre>
+          <li>
+          <Button
+                    onClick={async () => {await generate_ibc_multi(testbbn, aliceIBC?.address!, bobIBC?.address! )}}
+                    type="button"
+                variant="outline"
+                disabled={
+                  isZeta ||
+                  isLoading ||
+                  !message ||
+                  !currentNetworkName
+                }
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Coins className="mr-2 h-4 w-4" />
+                )}
+Create Stake Transactions 
+             </Button>
+          </li>
             {completed && (
               <li className="leading-6">
                 <Alert>
