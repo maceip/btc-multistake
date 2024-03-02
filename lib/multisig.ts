@@ -34,22 +34,11 @@ import {
         value: compressedPubkey,
       };
     });
+    console.log("multi: ", pubkeys.length);
     const multisigPubkey = createMultisigThresholdPubkey(pubkeys, threshold);
     const multisigAddress = pubkeyToAddress(multisigPubkey, addressPrefix);
-  
-    // save multisig to fauna
-    const multisig = {
-      address: multisigAddress,
-      pubkeyJSON: JSON.stringify(multisigPubkey),
-      chainId,
-    };
-  
-    const { address }: CreateMultisigAccountResponse = await requestJson(
-      `/api/chain/${chainId}/multisig`,
-      { body: multisig },
-    );
-  
-    return address;
+    console.log("multi: ",multisigAddress, multisigPubkey);
+    return multisigAddress;
   };
   
   interface GetMultisigAccountResponse {

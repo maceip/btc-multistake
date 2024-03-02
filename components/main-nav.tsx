@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sheet"
 import Transactions from "@/components/transactions"
 import { AppContext } from "@/app/index"
+import Image from 'next/image'
 
 export function MainNav() {
   const pathname = usePathname()
@@ -39,6 +40,12 @@ export function MainNav() {
   return (
     <div className="flex gap-6 md:gap-10">
       <NavigationMenu>
+        <Image
+        src="/logo.png"
+        width={151.63}
+        height={37}
+        alt="eigenbtc logo"
+        /> 
         <NavigationMenuList className="flex-row gap-1">
           <NavigationMenuItem>
             <Link href="/" legacyBehavior passHref>

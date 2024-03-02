@@ -6,7 +6,7 @@ import {
   ArrowBigUp,
   ChevronDown,
   ChevronUp,
-  MessageCircle,
+  Landmark,
   RefreshCw,
 } from "lucide-react"
 import { formatUnits } from "viem"
@@ -199,9 +199,11 @@ export default function IndexPage() {
   return (
     <div>
       <div className="grid sm:grid-cols-3 gap-x-10">
-        <div className="sm:col-span-2 overflow-x-scroll">
+
+        <div className="sm:col-span-2 overflow-x-scroll">   
+ 
           <div className="mt-12 mb-8">
-            <div className="px-3 text-sm mb-1 text-gray-400">Total balance</div>
+            <div className="px-3 text-sm mb-1 text-gray-400">Total Staked</div>
             <div className="flex items-center justify-start gap-1">
               <h1 className="px-3 text-4xl font-bold tracking-tight">
                 ${formatBalanceTotal(balancesTotal)}
@@ -230,14 +232,14 @@ export default function IndexPage() {
           <div className="my-5 flex space-x-2">
             <Link href="/messaging" legacyBehavior passHref>
               <Button variant="outline">
-                <MessageCircle className="mr-1 h-5 w-5" strokeWidth={1.5} />
-                Multiparty Staking
+                <Landmark className="mr-1 h-5 w-5" strokeWidth={1.5} />
+                Create Multiparty Stake
               </Button>
             </Link>
           </div>
         </div>
         <div className="mr-4">
-          <Transfer />
+          {/*//<Transfer />*/}
         </div>
       </div>
     </div>
